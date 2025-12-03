@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Ticket, Store, Clock, Calendar } from "lucide-react";
+import { Ticket, Store, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import OdometerDisplay from "@/components/OdometerDisplay";
@@ -46,10 +46,9 @@ const Index = () => {
     }
   };
 
-  // Get current time info
+  // Get current date info
   const now = new Date();
   const currentDay = now.getDate();
-  const currentHour = now.getHours();
   const daysRemaining = currentDay <= 15 ? 15 - currentDay : 0;
 
   return (
@@ -82,15 +81,11 @@ const Index = () => {
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
             {status === "active"
               ? "Token System Active"
-              : status === "closed"
-              ? "Token Generation Closed After 12 PM"
               : "Distribution Period: 1st - 15th of Month"}
           </h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             {status === "active"
               ? "Get your token now and check the current serving number"
-              : status === "closed"
-              ? "Tokens can only be generated before 12:00 PM"
               : "Please return during the distribution period"}
           </p>
         </div>
@@ -141,11 +136,7 @@ const Index = () => {
                     className="w-full h-16 text-lg font-semibold gap-2 animate-pulse-glow"
                   >
                     <Ticket className="w-5 h-5" />
-                    {status === "closed"
-                      ? "Generation Closed"
-                      : status === "inactive"
-                      ? "Not Available"
-                      : "Generate Token"}
+                    {status === "inactive" ? "Not Available" : "Generate Token"}
                   </Button>
                   {status === "active" && (
                     <p className="text-xs text-muted-foreground mt-3">
@@ -158,23 +149,9 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Info Cards */}
-        <div className="grid gap-4 md:grid-cols-2 max-w-4xl mx-auto mt-8">
+        {/* Info Card */}
+        <div className="max-w-md mx-auto mt-8">
           <Card className="animate-fade-in bg-card/50" style={{ animationDelay: "0.3s" }}>
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">Token Generation Hours</p>
-                <p className="text-sm text-muted-foreground">
-                  12:00 AM - 12:00 PM (Noon)
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="animate-fade-in bg-card/50" style={{ animationDelay: "0.4s" }}>
             <CardContent className="flex items-center gap-4 p-4">
               <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-accent" />

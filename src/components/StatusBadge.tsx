@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 interface StatusBadgeProps {
-  status: "active" | "closed" | "inactive";
+  status: "active" | "inactive";
   className?: string;
 }
 
@@ -11,11 +11,6 @@ const StatusBadge = ({ status, className }: StatusBadgeProps) => {
       label: "Distribution Active",
       className: "bg-accent text-accent-foreground",
       showPulse: true,
-    },
-    closed: {
-      label: "Token Generation Closed",
-      className: "bg-destructive text-destructive-foreground",
-      showPulse: false,
     },
     inactive: {
       label: "Distribution Period Ended",
