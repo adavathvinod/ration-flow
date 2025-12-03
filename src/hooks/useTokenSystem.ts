@@ -22,19 +22,11 @@ export const useTokenSystem = () => {
     return day >= 1 && day <= 15;
   }, []);
 
-  // Check if token generation is open (before 12 PM)
-  const isTokenGenerationOpen = useCallback(() => {
-    const now = new Date();
-    const hours = now.getHours();
-    return hours < 12;
-  }, []);
-
   // Get system status
-  const getSystemStatus = useCallback((): "active" | "closed" | "inactive" => {
+  const getSystemStatus = useCallback((): "active" | "inactive" => {
     if (!isDistributionPeriod()) return "inactive";
-    if (!isTokenGenerationOpen()) return "closed";
     return "active";
-  }, [isDistributionPeriod, isTokenGenerationOpen]);
+  }, [isDistributionPeriod]);
 
   // Fetch current state from database
   const fetchCurrentState = useCallback(async () => {
@@ -100,15 +92,6 @@ export const useTokenSystem = () => {
       toast({
         title: "Distribution Closed",
         description: "Token generation is only available from 1st to 15th of each month.",
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    if (!isTokenGenerationOpen()) {
-      toast({
-        title: "Token Generation Closed",
-        description: "Token Generation Closed After 12 PM",
         variant: "destructive",
       });
       return null;
@@ -182,7 +165,7 @@ export const useTokenSystem = () => {
       });
       return null;
     }
-  }, [isDistributionPeriod, isTokenGenerationOpen, toast]);
+  }, [isDistributionPeriod, toast]);
 
   // Increment serving number (shop owner only)
   const incrementServing = useCallback(async () => {
@@ -266,7 +249,6 @@ export const useTokenSystem = () => {
     incrementServing,
     getSystemStatus,
     isDistributionPeriod,
-    isTokenGenerationOpen,
     fetchCurrentState,
   };
 };
