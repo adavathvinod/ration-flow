@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Ticket, Store, Calendar, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,12 @@ import QueueCodeEntry from "@/components/QueueCodeEntry";
 import { useTokenSystem } from "@/hooks/useTokenSystem";
 
 const Index = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlCode = searchParams.get("code");
+  
   const [shopCode, setShopCode] = useState<string | null>(() => {
+    // Priority: URL param > session storage
+    if (urlCode) return urlCode.toUpperCase();
     return sessionStorage.getItem("current_shop_code");
   });
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -43,6 +48,13 @@ const Index = () => {
     getSystemStatus,
     fetchShopByCode,
   } = useTokenSystem(shopCode);
+
+  // Validate URL code on mount
+  useEffect(() => {
+    if (urlCode && shopCode === urlCode.toUpperCase()) {
+      sessionStorage.setItem("current_shop_code", urlCode.toUpperCase());
+    }
+  }, [urlCode, shopCode]);
 
   const status = getSystemStatus();
   const canGenerateToken = status === "active" && generatedToken === null;
@@ -89,6 +101,7 @@ const Index = () => {
   const handleExitQueue = () => {
     setShopCode(null);
     setGeneratedToken(null);
+    setSearchParams({}); // Clear URL params
     sessionStorage.removeItem("current_shop_code");
     sessionStorage.removeItem("generated_token_today");
     sessionStorage.removeItem("generated_token_date");

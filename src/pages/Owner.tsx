@@ -8,6 +8,7 @@ import SwipeToIncrement from "@/components/SwipeToIncrement";
 import StatusBadge from "@/components/StatusBadge";
 import SystemToggle from "@/components/SystemToggle";
 import ShopCodeSetup from "@/components/ShopCodeSetup";
+import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { useTokenSystem } from "@/hooks/useTokenSystem";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -141,19 +142,25 @@ const Owner = () => {
                     {shopSettings.shop_code}
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopyCode}
-                  className="gap-2"
-                >
-                  {copied ? (
-                    <Check className="w-4 h-4 text-accent" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                  {copied ? "Copied" : "Copy"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <QRCodeDisplay
+                    shopCode={shopSettings.shop_code}
+                    shopName={shopSettings.shop_name || undefined}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyCode}
+                    className="gap-2"
+                  >
+                    {copied ? (
+                      <Check className="w-4 h-4 text-accent" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                    {copied ? "Copied" : "Copy"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
