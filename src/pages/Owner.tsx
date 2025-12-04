@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Ticket, LogOut, RefreshCw, Home, Users } from "lucide-react";
+import { Ticket, LogOut, RefreshCw, Home, Users, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import OdometerDisplay from "@/components/OdometerDisplay";
 import SwipeToIncrement from "@/components/SwipeToIncrement";
 import StatusBadge from "@/components/StatusBadge";
+import SystemToggle from "@/components/SystemToggle";
+import ShopCodeSetup from "@/components/ShopCodeSetup";
 import { useTokenSystem } from "@/hooks/useTokenSystem";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +17,7 @@ const Owner = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -22,15 +25,19 @@ const Owner = () => {
     currentServing,
     nextToken,
     loading,
+    isOpen,
+    shopSettings,
     incrementServing,
     getSystemStatus,
     fetchCurrentState,
+    toggleSystemStatus,
+    updateShopSettings,
   } = useTokenSystem();
 
   const status = getSystemStatus();
+  const isConfigured = shopSettings?.shop_code && shopSettings?.shop_name;
 
   useEffect(() => {
-    // Set up auth listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -43,7 +50,6 @@ const Owner = () => {
       }
     );
 
-    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -64,6 +70,18 @@ const Owner = () => {
       description: "You have been signed out successfully.",
     });
     navigate("/auth");
+  };
+
+  const handleCopyCode = () => {
+    if (shopSettings?.shop_code) {
+      navigator.clipboard.writeText(shopSettings.shop_code);
+      setCopied(true);
+      toast({
+        title: "Copied!",
+        description: "Queue code copied to clipboard",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (authLoading) {
@@ -88,7 +106,9 @@ const Owner = () => {
               <Ticket className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-lg">Owner Dashboard</h1>
+              <h1 className="font-display font-bold text-lg">
+                {shopSettings?.shop_name || "Owner Dashboard"}
+              </h1>
               <p className="text-xs text-muted-foreground truncate max-w-[150px] md:max-w-none">
                 {user.email}
               </p>
@@ -110,6 +130,35 @@ const Owner = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 md:py-12">
+        {/* Queue Code Display (if configured) */}
+        {isConfigured && (
+          <div className="max-w-2xl mx-auto mb-6">
+            <Card className="bg-primary/5 border-primary/20 animate-fade-in">
+              <CardContent className="flex items-center justify-between p-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Your Queue Code</p>
+                  <p className="text-2xl font-mono font-bold tracking-wider text-primary">
+                    {shopSettings.shop_code}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyCode}
+                  className="gap-2"
+                >
+                  {copied ? (
+                    <Check className="w-4 h-4 text-accent" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                  {copied ? "Copied" : "Copy"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Status Section */}
         <div className="text-center mb-8 animate-fade-in">
           <StatusBadge status={status} className="mb-4" />
@@ -117,12 +166,39 @@ const Owner = () => {
             Queue Management
           </h2>
           <p className="text-muted-foreground">
-            Swipe to call the next token number
+            {isConfigured
+              ? "Control your queue and call the next token"
+              : "Set up your queue instance to get started"}
           </p>
         </div>
 
-        {/* Main Dashboard */}
         <div className="max-w-2xl mx-auto space-y-6">
+          {/* Shop Setup (if not configured) */}
+          {!isConfigured && (
+            <ShopCodeSetup
+              currentCode={shopSettings?.shop_code}
+              currentName={shopSettings?.shop_name}
+              onSave={updateShopSettings}
+              loading={loading}
+            />
+          )}
+
+          {/* System Toggle */}
+          {isConfigured && (
+            <div className="animate-fade-in" style={{ animationDelay: "0.05s" }}>
+              <SystemToggle
+                isOpen={isOpen}
+                onToggle={toggleSystemStatus}
+                disabled={status === "inactive" || loading}
+              />
+              {status === "inactive" && (
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  System toggle available during distribution period (1st - 15th)
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Current Serving - Large Display */}
           <Card className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <CardHeader className="text-center pb-0">
@@ -153,8 +229,13 @@ const Owner = () => {
             <CardContent className="pb-8">
               <SwipeToIncrement
                 onIncrement={incrementServing}
-                disabled={status === "inactive"}
+                disabled={!isConfigured || status === "inactive" || !isOpen}
               />
+              {!isOpen && isConfigured && status !== "inactive" && (
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  Turn on the system toggle above to enable token calling
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -185,6 +266,16 @@ const Owner = () => {
             </Card>
           </div>
 
+          {/* Shop Settings (if configured, allow editing) */}
+          {isConfigured && (
+            <ShopCodeSetup
+              currentCode={shopSettings?.shop_code}
+              currentName={shopSettings?.shop_name}
+              onSave={updateShopSettings}
+              loading={loading}
+            />
+          )}
+
           {/* Refresh Button */}
           <div className="text-center">
             <Button
@@ -203,7 +294,7 @@ const Owner = () => {
       {/* Footer */}
       <footer className="border-t border-border mt-12 py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Shop Owner Dashboard • All data syncs in real-time</p>
+          <p>Queue Management Dashboard • All data syncs in real-time</p>
         </div>
       </footer>
     </div>
