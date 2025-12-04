@@ -21,6 +21,7 @@ export type Database = {
           id: string
           is_expired: boolean
           session_id: string
+          shop_id: string | null
           token_number: number
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           id?: string
           is_expired?: boolean
           session_id: string
+          shop_id?: string | null
           token_number: number
         }
         Update: {
@@ -37,9 +39,18 @@ export type Database = {
           id?: string
           is_expired?: boolean
           session_id?: string
+          shop_id?: string | null
           token_number?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "daily_tokens_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -70,7 +81,10 @@ export type Database = {
           created_at: string
           current_serving: number
           id: string
+          is_open: boolean
           last_reset_date: string
+          shop_code: string | null
+          shop_name: string | null
           shop_owner_id: string | null
           updated_at: string
         }
@@ -78,7 +92,10 @@ export type Database = {
           created_at?: string
           current_serving?: number
           id?: string
+          is_open?: boolean
           last_reset_date?: string
+          shop_code?: string | null
+          shop_name?: string | null
           shop_owner_id?: string | null
           updated_at?: string
         }
@@ -86,7 +103,10 @@ export type Database = {
           created_at?: string
           current_serving?: number
           id?: string
+          is_open?: boolean
           last_reset_date?: string
+          shop_code?: string | null
+          shop_name?: string | null
           shop_owner_id?: string | null
           updated_at?: string
         }

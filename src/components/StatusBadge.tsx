@@ -1,20 +1,25 @@
 import { cn } from "@/lib/utils";
 
 interface StatusBadgeProps {
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "owner_closed";
   className?: string;
 }
 
 const StatusBadge = ({ status, className }: StatusBadgeProps) => {
   const statusConfig = {
     active: {
-      label: "Distribution Active",
+      label: "Queue Open",
       className: "bg-accent text-accent-foreground",
       showPulse: true,
     },
     inactive: {
-      label: "Distribution Period Ended",
+      label: "Distribution Period: 1st-15th",
       className: "bg-muted text-muted-foreground",
+      showPulse: false,
+    },
+    owner_closed: {
+      label: "Queue Closed",
+      className: "bg-destructive/10 text-destructive",
       showPulse: false,
     },
   };
